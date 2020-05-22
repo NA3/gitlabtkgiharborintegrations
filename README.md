@@ -7,6 +7,7 @@ Authored by Daniel Zilberman with Riaz Mohamed and Raghu Pemmaraju <br>
 May 2020
 
 Table of Contents
+=================
 
 [1. Introduction 2](#introduction)
 
@@ -23,7 +24,7 @@ with project
 13](#_Toc40974735)
 
 Introduction
-------------
+============
 
 In this document, we provide an overview of integration of OmniBus
 GitLab (Enterprise Edition) software change management (SCM) platform
@@ -39,7 +40,7 @@ container image registry to enable CI/CD process automation using GitLab
 tools.
 
 Pre-requisites:
----------------
+===============
 
 -   The following software should be installed and accessible from
 
@@ -74,7 +75,7 @@ Pre-requisites:
 ![](./media/image4.png)
 
 Add Existing TKGI K8s Cluster to GitLab project
------------------------------------------------
+===============================================
 
 We need to add K8s cluster to our GitLab project as a target for CI/CD
 deployments of containerized applications and for deploying Runner
@@ -228,7 +229,7 @@ Hooks and Services, following KB Article:
 ![](./media/image8.png)
 
 Install and configure GitLab Runner using Helm chart, associate it with project
--------------------------------------------------------------------------------
+===============================================================================
 
 In GitLab CI/CD, Runners run the code defined in the .**gitlab-ci.yml**
 pipeline definition file. They can be dedicated virtual machines or
@@ -591,7 +592,7 @@ kubectl get deploy, po -n gitlabrunner
     [documentation](https://docs.gitlab.com/ee/ci/runners/README.html#registering-a-shared-runner)
 
 Configure and Execute Project CI/CD Pipeline on Runner
-------------------------------------------------------
+======================================================
 
 Below is an example of a CI/CD pipeline that builds a simple SpringBoot
 microservice from its Java source code using Maven, continues to build a
