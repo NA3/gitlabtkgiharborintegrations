@@ -6,17 +6,17 @@ Table of Contents
 
 [1. Introduction 2](#introduction)
 
-[2. Pre-Requisites: 2](#pre-requisites)
+[2. Pre-requisites: 2](#pre-requisites)
 
 [3. Add Existing TKGI K8s Cluster to GitLab project
 3](#add-existing-tkgi-k8s-cluster-to-gitlab-project)
 
 [4. Install and configure GitLab Runner using Helm chart, associate it
-with Project
+with project
 7](#install-and-configure-gitlab-runner-using-helm-chart-associate-it-with-project)
 
 [5. Configure and Execute Project CI/CD Pipeline on Runner
-13](#_Toc40957127)
+13](#_Toc40974735)
 
 Introduction
 ------------
@@ -26,18 +26,15 @@ GitLab (Enterprise Edition) software change management (SCM) platform
 with VMware Tanzu Kubernetes Grid Integrated (TKGI, formerly known as
 VMware Enterprise PKS) Kubernetes clusters and Harbor container image
 registry platform for automated software build tasks. GitLab is a
-popular DevOps platform since it is compatible with Git project file
-versioning, structure and client software.
+popular DevOps platform since it is compatible with Git file versioning,
+project directory structure and client software.
 
 We highlight configuration steps to enable integration between GitLab EE
 and Kubernetes clusters provisioned with TKGI platform and Harbor
 container image registry to enable CI/CD process automation using GitLab
-tools. The example is based on a sample project containing source code
-for Spring Boot microservice and Dockerfile for building container image
-that is getting built, image generated, tagged and uploaded into
-designated repository in Harbor.
+tools.
 
-Pre-Requisites:
+Pre-requisites:
 ---------------
 
 -   The following software should be installed and accessible from
@@ -126,19 +123,17 @@ Copy the above certificate string value for use in the following steps
 
 -   Obtain Authentication Token for GitLab authentication against K8s
 
-GitLab authenticates against K8s using service tokens, which are scoped
-to a particular namespace. The token used should belong to a service
-account with 'cluster-admin'
-
-privileges.
-
-Follow GitLab
-[documentation](https://gitlab.acelab.local/help/user/project/clusters/add_remove_clusters.md#add-existing-cluster)
-to create a Service Account and Cluster Role Binding with
-"cluster-admin" privileges using sample
-*gitlab-admin-service-account.yaml* K8s deployment descriptor provided
-as an example:
-
+> GitLab authenticates against K8s using service tokens, which are
+> scoped to a namespace. The token used should belong to a service
+> account with 'cluster-admin' privileges.
+>
+> Follow GitLab
+> [documentation](https://gitlab.acelab.local/help/user/project/clusters/add_remove_clusters.md#add-existing-cluster)
+> to create a Service Account and Cluster Role Binding with
+> "cluster-admin" privileges using sample
+> *gitlab-admin-service-account.yaml* K8s deployment descriptor provided
+> as an example:
+>
 > apiVersion: v1
 >
 > kind: ServiceAccount
@@ -232,10 +227,10 @@ Hooks and Services, following KB Article:
 ![](./media/image8.png){width="5.623988407699038in"
 height="2.2829232283464567in"}
 
-Install and configure GitLab Runner using Helm chart, associate it with Project
+Install and configure GitLab Runner using Helm chart, associate it with project
 -------------------------------------------------------------------------------
 
-In GitLab CI/CD, Runners run the code defined in the **.gitlab-ci.yml**
+In GitLab CI/CD, Runners run the code defined in the .**gitlab-ci.yml**
 pipeline definition file. They can be dedicated virtual machines or
 dedicated Kubernetes Pods that pick up build jobs through the
 coordinator API of GitLab CI/CD. A Runner can be specific to a certain
@@ -330,7 +325,7 @@ Set that namespace as current context:
 
 -   Another important field is RBAC support for a Runner service
     account. To have the chart create new Service account during
-    installation, set **rbac.create** to true
+    installation, set **rbac.create** to **true**
 
 > \#\# For RBAC support:
 >
@@ -405,7 +400,7 @@ Set that namespace as current context:
 >
 > *default-token-ckt9m kubernetes.io/service-account-token 3 30m*
 >
-> **gitlabca Opaque 1 9s**
+> *gitlabca Opaque 1 9s*
 
 -   Use that K8 Secret name in the **certsSecretName** section of the
     **values.yaml** file as shown below:
@@ -459,8 +454,8 @@ to generate K8s secret above (**gitlabca)** used in the
 ***certsSecretName*** section
 
 -   If CI/CD task will require using "executor" images running
-    containers in 'privileged' mode (such as popular DIND "docker in
-    docker", per GitLab
+    containers in 'privileged' mode (such as when using popular DIND
+    "docker in docker", per GitLab
     [documentation](https://docs.gitlab.com/runner/executors/docker.html#use-docker-in-docker-with-privileged-mode)
     ), perform the following optional configuration steps:
 
@@ -482,7 +477,7 @@ to generate K8s secret above (**gitlabca)** used in the
 >
 > **.....**
 >
-> **b.** Copy previously downloaded Harbor certificate file to
+> b**.** Copy previously downloaded Harbor certificate file to
 > **/etc/gitlab/trusted-certs** and **/etc/gitlab/ssl** folders in
 > GitLab VM:
 >
@@ -501,12 +496,12 @@ to generate K8s secret above (**gitlabca)** used in the
 > gitlab.acelab.local.crt
 >
 > c\. Target TKGI K8s cluster should be deployed with Pod Security
-> policies set to "privileged" mode, per
+> Policies set to "privileged" mode, per
 > [documentation](https://docs.pivotal.io/pks/1-4/pod-security-policy.html)
 
-NOTE: in our CI/CD example below we will be using a different executor
-container based on Google Project Kaniko which **does not require
-running in privileged mode**, please see GitLab
+NOTE: in our CI/CD example below we will be using an executor container
+image based on Google Project Kaniko which **does not require running in
+privileged mode**, please see GitLab
 [documentation](https://docs.gitlab.com/ee/ci/docker/using_kaniko.html#requirements)
 for details. Therefore, the configuration steps in this section are not
 required for running that example.
@@ -601,14 +596,14 @@ kubectl get deploy, po -n gitlabrunner
 Configure and Execute Project CI/CD Pipeline on Runner
 ------------------------------------------------------
 
-Below is an example of a CI/CD pipeline that builds a simple Spring Boot
-microservice from a Java source code using Maven, continues to build a
+Below is an example of a CI/CD pipeline that builds a simple SpringBoot
+microservice from its Java source code using Maven, continues to build a
 container image using Dockerfile residing in a subdirectory and finally
 pushes built image into designated project in the Harbor container image
 repository.
 
 -   Properties of target Harbor project (top level construct for images
-    hosting) is shown below. It is not 'Public' and therefore requires
+    hosting) are shown below. It is not 'Public' and therefore requires
     authorized user login with at least "Developer" access level, per
     Harbor
     [documentation](https://goharbor.io/docs/1.10/administration/managing-users/).
@@ -619,14 +614,14 @@ repository.
 > ![](./media/image13.png){width="5.9408552055993in"
 > height="3.4648643919510063in"}
 
--   There are existing image repositories configured for the project,
+-   There are existing image repositories configured for that project,
     shown below:
 
 > ![](./media/image14.png){width="5.816216097987752in"
 > height="1.5360772090988626in"}
 >
 > Our GitLab pipeline will be building and pushing images into
-> 'daniel\_project1/dockersample' repository:
+> '**daniel\_project1/dockersample'** repository:
 >
 > ![](./media/image15.png){width="5.778379265091863in"
 > height="1.119251968503937in"}
@@ -678,18 +673,19 @@ height="2.296862423447069in"}
 > login \${CI\_REGISTRY} -u \${CI\_REGISTRY\_USER} -p
 > \${CI\_REGISTRY\_PASSWORD}"** to run as API call from CI/CD script)
 
--   To bypass a need to have privileged access to Docker daemon to run
-    "docker build" commands, we can use unprivileged access via Google
-    Kaniko execution environment: <https://docs.gitlab.com/ee/ci/> (OK
-    for running builds, not for running container images) See details
-    in:
+-   To bypass a need for executor containers to have privileged access
+    to Docker daemon to run "docker build" commands, we can use
+    unprivileged access via [Google
+    Kaniko](https://github.com/GoogleContainerTools/kaniko) execution
+    environment: <https://docs.gitlab.com/ee/ci/> (OK for running
+    builds, not for running container images) See details in:
     [https://docs.gitlab.com/ee/ci/docker/using\_kaniko.html](https://nam04.safelinks.protection.outlook.com/?url=https%3A%2F%2Fdocs.gitlab.com%2Fee%2Fci%2Fdocker%2Fusing_kaniko.html&data=02%7C01%7Cdzilberman%40vmware.com%7C62bf8cace2334bf13b7c08d7eacc40d0%7Cb39138ca3cee4b4aa4d6cd83d9dd62f0%7C0%7C0%7C637236035295994833&sdata=t9pqhqhr0RIA0f2nG5Jnwk2%2FGuLch0pNov9NAUajQBo%3D&reserved=0)
 
 -   Edit default CI/CD pipeline script (.**gitlab-ci.yaml**) at the root
     of GitLab project directory:
 
-![](./media/image20.png){width="6.239229002624672in"
-height="1.6216218285214348in"}
+> ![](./media/image20.png){width="6.239229002624672in"
+> height="1.6216218285214348in"}
 
 -   Example of a working version of above script that builds and pushes
     Docker container images from GitLab project sub-folders is shown
