@@ -1,5 +1,11 @@
 ![](./media/image2.emf)![](./media/image3.png)
 
+VMware Advanced Customer Engagements (ACE) Team
+
+Authored by Daniel Zilberman with Riaz Mohamed and Raghu Pemmaraju <br>
+
+May 2020
+
 Table of Contents
 
 [1. Introduction 2](#introduction)
