@@ -98,11 +98,9 @@ more information on Runners
 
 Obtain CA certificate from the K8s cluster using command like
 
-kubectl get secret \<secret name\> -o jsonpath =
-\"{\[\'data\'\]\[\'ca\\.crt\'\]}\" \| base64 --decode
+kubectl get secret \<secret name\> -o jsonpath=\"{\[\'data\'\]\[\'ca\\.crt\'\]}\" \| base64 --decode
 
-E.G. kubectl get secret \<default-token-p6br2\> -o jsonpath =
-\"{\[\'data\'\]\[\'ca\\.crt\'\]}\" \| base64 -d
+E.G. kubectl get secret \<default-token-p6br2\> -o jsonpath=\"{\[\'data\'\]\[\'ca\\.crt\'\]}\" \| base64 -d
 
 **Note:** If the command returns the entire certificate chain, copy the
 *root ca* certificate value at the bottom of the chain:
