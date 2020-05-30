@@ -39,7 +39,6 @@ docker-package:
     
 deploy to development:
   stage: deploy
-  #image: dtzar/helm-kubectl
   image:  "registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v0.15.0"
   script:
     - echo "Will use target K8s API Server:"
@@ -58,12 +57,6 @@ deploy to development:
     # will use syntax like kubectl config --kubeconfig=config-demo set-cluster
     - kubectl --kubeconfig="${KUBECONFIG}" get nodes
     - echo "================================="
-    #- kubectl config --kubeconfig="${KUBECONFIG}" set-cluster myk8scluster --server="${KUBE_URL}"
-    #- kubectl config set clusters.myk8scluster.certificate-authority-data $(echo ${CERTIFICATE_AUTHORITY_DATA} | base64 -i -)
-    #- kubectl config set-credentials gitlab --token="${KUBE_TOKEN}"
-    #- kubectl config --kubeconfig="${KUBECONFIG}" set-context default --cluster=myk8scluster --user=gitlab
-    #- kubectl config --kubeconfig="${KUBECONFIG}" set-context default --cluster=myk8scluster
-    #- kubectl config --kubeconfig="${KUBECONFIG}" use-context default
     - echo "CHECK K8s current context set to:"
     - kubectl config current-context
     - echo "Getting Nodes info w/o using context:"
