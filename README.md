@@ -1,4 +1,4 @@
-![](./media/image2.emf)(./media/image3.png)
+![](./media/image3.png)
 
 Table of Contents
 
@@ -672,7 +672,7 @@ structure and stages defined in accordance with documentation:
 -   Edit default CI/CD pipeline script (.**gitlab-ci.yaml**) at the root
     of GitLab project directory:
 
-> ![](./media/image20.png)
+> ![](./media/image16.png)
 
 -   Example of a working version of above script that builds and pushes
     Docker container image from GitLab project sub-folders is shown
@@ -770,7 +770,7 @@ structure and stages defined in accordance with documentation:
 -   Pipeline execution progress can be monitored in real time and after
     its completion via GitLab CI/CD UI, as shown below:
 
-> ![](./media/image22.png){width="6.5in" height="4.048611111111111in"}
+> ![](./media/image22.png)
 
 -   If Pipeline execution is successful, in the target Harbor
     project/repository there should be a new built/pushed image(s) from
