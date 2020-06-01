@@ -1,19 +1,27 @@
-#added before-script to change directory
+#added before-script to change working directory
 before_script:
   - cd $CI_PROJECT_DIR/qrcode
   
 stages:
+  - test
   - build
   - docker-build
   - deploy
 
+#Test stage 
+unit test:
+  stage: test
+  script:
+    - echo "Unite Test scripts will go here.."
+  
+#build stage
 maven-build:
   stage: build
   image: maven:latest
   script:
     - mvn package
-
-docker-package:
+#docker-build stage
+docker build package:
   stage: docker-build
   image:
     name: gcr.io/kaniko-project/executor:debug
@@ -32,22 +40,27 @@ docker-package:
     - echo "Target Harbor reposiory image:"
     - echo $CI_REGISTRY_IMAGE
     - /kaniko/executor --context $CI_PROJECT_DIR/qrcode --dockerfile $CI_PROJECT_DIR/qrcode/Dockerfile --destination ${CI_REGISTRY_IMAGE}:${CI_REGISTRY_TAG_DEV}
-    - echo "CI/CD job completed, image should be available at:"
-    - echo ${CI_REGISTRY_IMAGE}:${CI_REGISTRY_TAG}
+    - echo "CI/CD job completed, APP image should be available at:"
+    - echo ${CI_REGISTRY_IMAGE}:${CI_REGISTRY_TAG_DEV}
   environment:
     name: development
-    
+  #build docker app only when a pipeline on master branch is run
+  only:
+  - master
+  
+#deploy stage    
 deploy to development:
   stage: deploy
+  #image: dtzar/helm-kubectl
   image:  "registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v0.15.0"
   script:
-    - echo "Will use target K8s API Server:"
-    - echo $K8S_SERVER
-    - echo "TEST BUILT IN K8s VARS:"
-    - echo "Will use KUBE_URL:" 
+    - echo "Runner in Environment:"
+    - echo $CI_ENVIRONMENT_SLUG
+    #- echo "Will use target K8s API Server:"
+    #- echo $K8S_SERVER
+    - echo "WILL USE BUILT IN K8s VARS PER ENVIRONENT:"
+    - echo "KUBE_URL:" 
     - echo $KUBE_URL
-    #- echo "KUBE_TOKEN:"
-    #- echo $KUBE_TOKEN
     - echo "KUBE_NAMESPACE:"
     - echo $KUBE_NAMESPACE
     - echo "Path to kubeconfig:"
@@ -67,13 +80,14 @@ deploy to development:
     - echo "Creating regcred Docker login secret 'regcred'.."
     - kubectl create secret docker-registry regcred --docker-server=$CI_REGISTRY --docker-username=$CI_REGISTRY_USER --docker-password=$CI_REGISTRY_PASSWORD --docker-email=admin_harbor@acelcab.local
     - kubectl get secrets
-    - echo "Will deploy QR Code container app to target cluster:"
+    - echo "Will deploy QR Code container app to target cluster/namespace:"
     - kubectl apply -f $CI_PROJECT_DIR/deployment_harbor.yaml
-    - echo "QR Code container deployed to K8s cluster, checking Pod status:"
+    - echo "QR Code container app deployed to K8s cluster, checking Pod status:"
     #- kubectl get po -n default
     - kubectl get po -n $KUBE_NAMESPACE
-    
   environment:
     name: development
-
-
+  #deploy app to K8s only when a pipeline on master branch is run
+  only:
+  - master
+    
