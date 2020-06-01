@@ -86,7 +86,7 @@ more information on Runners
 > Specify name and FDQN (create DNS record if doesn't exist yet) based
 > URL of API Server/Master node(s)
 
-![](./media/image5.png){width="7.0in" height="2.5027777777777778in"}
+![](./media/image5.png)
 
 -   Follow "More Information" links for each field to be filled in, as
     specified in documentation
@@ -795,9 +795,7 @@ structure and stages defined in accordance with documentation:
 -   For now, we only want to deploy the application only when pipeline
     on **master** branch is run hence the 'only ...' condtion
 
-```{=html}
-<!-- -->
-```
+
 -   Pipeline execution progress for each stage can be monitored in real
     time:
 
@@ -970,14 +968,10 @@ integrated with our project
 > \- echo \"KUBE\_URL:\"
 >
 > \- echo \$KUBE\_URL
->
-<<<<<<< HEAD
-=======
-> \#- echo \"KUBE\_TOKEN:\"
->
->
->>>>>>> 51f18c9b8ce9101f85cf181b7d012a1063272b6c
+
 > \- echo \"KUBE\_NAMESPACE:\"
+>
+> \- echo \"$KUBE\_NAMESPACE:\"
 >
 > \- echo \"Path to kubeconfig:\"
 >
