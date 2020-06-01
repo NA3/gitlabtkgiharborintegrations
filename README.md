@@ -935,11 +935,8 @@ integrated with our project
 >
 > \#- echo \"KUBE\_TOKEN:\"
 >
-> \#- echo \$KUBE\_TOKEN
 >
 > \- echo \"KUBE\_NAMESPACE:\"
->
-> \- echo \$KUBE\_NAMESPACE
 >
 > \- echo \"Path to kubeconfig:\"
 >
@@ -947,7 +944,7 @@ integrated with our project
 >
 > \- echo \"=================================\"
 >
-> \- echo \"Trying to \'get nodes\' using default kubeconfig
+> \- echo \"Trying to \'get nodes\' using kubeconfig path 
 > setting\...\"
 >
 > \# will use syntax like kubectl config \--kubeconfig=config-demo
@@ -961,7 +958,7 @@ integrated with our project
 >
 > \- kubectl config current-context
 >
-> \- echo \"Getting Nodes info w/o using context:\"
+> \- echo \"Getting K8s Nodes info w/o using context:\"
 >
 > \- kubectl get nodes
 >
