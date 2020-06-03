@@ -1,0 +1,31 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qrcode-java
+  labels:
+    app: qrcode
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: qrcode
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 33%
+  template:
+    metadata:
+      labels:
+        app: qrcode
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: qrcode
+          #NOTE: :cicd-vX tag is for deploymet branch, will have to use another one for production 
+          image: harbor.corp.local/daniel_project1/qrcode:cicd-v2
+          ports:
+            - containerPort: 8080
+         

@@ -12,7 +12,7 @@ stages:
 unit test:
   stage: test
   script:
-    - echo "Unite Test scripts will go here.."
+    - echo "Unit Test scripts should go here.."
   
 #build stage
 maven-build:
@@ -21,7 +21,7 @@ maven-build:
   script:
     - mvn package
 #docker-build stage
-docker build package:
+docker build push:
   stage: docker-build
   image:
     name: gcr.io/kaniko-project/executor:debug
@@ -56,11 +56,11 @@ deploy to development:
   script:
     - echo "Runner in Environment:"
     - echo $CI_ENVIRONMENT_SLUG
-    #- echo "Will use target K8s API Server:"
-    #- echo $K8S_SERVER
     - echo "WILL USE BUILT IN K8s VARS PER ENVIRONENT:"
     - echo "KUBE_URL:" 
     - echo $KUBE_URL
+    #- echo "KUBE_TOKEN:"
+    #- echo $KUBE_TOKEN
     - echo "KUBE_NAMESPACE:"
     - echo $KUBE_NAMESPACE
     - echo "Path to kubeconfig:"
@@ -75,14 +75,17 @@ deploy to development:
     - echo "Getting Nodes info w/o using context:"
     - kubectl get nodes
     #- echo "-------------------------------------------------"
-    # TODO: add error handling in case if NS exists
+    # TODO: add error handling in case if NS exists or just delete proactively
+    - kubectl delete ns $KUBE_NAMESPACE
+    - sleep 60
+    # now create it again
     - kubectl create ns $KUBE_NAMESPACE
     - echo "Creating regcred Docker login secret 'regcred'.."
     - kubectl create secret docker-registry regcred --docker-server=$CI_REGISTRY --docker-username=$CI_REGISTRY_USER --docker-password=$CI_REGISTRY_PASSWORD --docker-email=admin_harbor@acelcab.local
     - kubectl get secrets
     - echo "Will deploy QR Code container app to target cluster/namespace:"
-    - kubectl apply -f $CI_PROJECT_DIR/deployment_harbor.yaml
-    - echo "QR Code container app deployed to K8s cluster, checking Pod status:"
+    - kubectl apply -f $CI_PROJECT_DIR/deployment_qrcode.yaml
+    - echo "QR Code container App deployed to K8s cluster, checking Pod status:"
     #- kubectl get po -n default
     - kubectl get po -n $KUBE_NAMESPACE
   environment:

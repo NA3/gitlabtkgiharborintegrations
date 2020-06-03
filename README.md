@@ -1,4 +1,4 @@
-![](./media/image3.png)
+![]![](./media/image3.png)
 
 Table of Contents
 
@@ -14,7 +14,7 @@ with project
 7](#install-and-configure-gitlab-runner-using-helm-chart-associate-it-with-project)
 
 [5. Configure and Execute CI/CD Pipeline for Building, Tagging and
-Publishing Application Image into Registry 13](#_Toc41907964)
+Publishing Application Image into Harbor Registry 13](#_Toc42088289)
 
 [6. Configure and Execute CI/CD Pipeline for Deployment of Application
 from Registry to K8s Cluster
@@ -98,7 +98,7 @@ Obtain CA certificate from the K8s cluster using command like
 kubectl get secret \<secret name\> -o jsonpath =
 \"{\[\'data\'\]\[\'ca\\.crt\'\]}\" \| base64 --decode
 
-E.G. kubectl get secret \<default-token-p6br2\> -o jsonpath =
+E.G. kubectl get secret \<default-token-p6br2\> -o jsonpath=
 \"{\[\'data\'\]\[\'ca\\.crt\'\]}\" \| base64 -d
 
 **Note:** If the command returns the entire certificate chain, copy the
@@ -213,14 +213,14 @@ in the "Add Existing Cluster" GitLab screen:
 ![](./media/image6.png)
 
 -   **Click "Add Cluster" button -- should get a confirmation of
-    successful result on GitLab UI**:
+    successful update on GitLab UI**:
 
 ![](./media/image7.png)
 
 NOTE: in case if a warning about blocked requests to local networks is
-displayed (when GitLab VM and K8s cluster API are on the same network),
-we may need to explicitly allow requests to local networks from Web
-Hooks and Services, following KB Article:
+displayed (when GitLab VM and K8s cluster API addresses are on the same
+network), we may need to explicitly allow requests to local networks
+from Web Hooks and Services from GitLab Admin UI, following KB Article:
 <https://gitlab.com/gitlab-org/gitlab-foss/-/issues/57948>
 
 ![](./media/image8.png)
@@ -270,7 +270,7 @@ follows the documentation
 ![](./media/image9.png)
 
 -   Create namespace in the K8s cluster where GitLab Runner Pod will be
-    running
+    running (e.g. 'gitlabrunner' or any other valid name)
 
 > kubectl create ns gitlabrunner
 >
@@ -316,8 +316,8 @@ Set that namespace as current context:
 >
 > NOTE: please see GitLab documentation
 > <https://docs.gitlab.com/runner/install/kubernetes.html> for
-> recommended values of additional fields in values.yaml file for GitLab
-> Runner Helm chart.
+> recommended values of additional fields in values.yaml deployment
+> configuration file for GitLab Runner Helm chart.
 
 -   Another important field is RBAC support for a Runner service
     account. To have the chart create new Service account during
@@ -363,6 +363,8 @@ Set that namespace as current context:
     server in a CER (BASE 64) format into a file:
 
 > ![](./media/image11.png)
+>
+> Notes:
 
 -   The certificate file name used should be in the format
     **\<gitlab.hostname.domain.crt\>**, for example
@@ -374,6 +376,9 @@ Set that namespace as current context:
 -   The hostname used should be the one the certificate is registered
     for.
 
+```{=html}
+<!-- -->
+```
 -   Generate K8s secret from GitLab CA certificate file (saved as
     **gitlab.corp.local.crt** in previous step) that complies with above
     conditions in the K8s namespace where Runner will be deployed using
@@ -384,7 +389,7 @@ Set that namespace as current context:
 >
 > *secret/gitlabca created*
 >
-> Validate the secret got created
+> Validate that the secret got created:
 >
 > \$ kubectl get secrets
 >
@@ -470,8 +475,8 @@ to generate K8s secret above (**gitlabca)** used in the
 > **.....**
 >
 > b**.** Copy previously downloaded Harbor certificate file to
-> **/etc/gitlab/trusted-certs** and **/etc/gitlab/ssl** folders in
-> GitLab VM:
+> **/etc/gitlab/trusted-certs** and **/etc/gitlab/ssl** folders of
+> GitLab VM file system:
 >
 > ls /etc/gitlab/ssl
 >
@@ -488,15 +493,15 @@ to generate K8s secret above (**gitlabca)** used in the
 > gitlab.acelab.local.crt
 >
 > c\. Target TKGI K8s cluster should be deployed with Pod Security
-> Policies set to "privileged" mode, per
+> Policies (PSP) set to "privileged" mode, per
 > [documentation](https://docs.pivotal.io/pks/1-4/pod-security-policy.html)
 
 NOTE: in our CI/CD example below we will be using an executor container
 image based on Google Project Kaniko which **does not require running in
 privileged mode**, please see GitLab
 [documentation](https://docs.gitlab.com/ee/ci/docker/using_kaniko.html#requirements)
-for details. Therefore, the configuration steps in this section are not
-required for running that example.
+for details. **Therefore, the configuration steps in this section are
+not required for running this example.**
 
 -   Add a Helm repository containing the chart for Runner deployment:
 
@@ -513,8 +518,8 @@ required for running that example.
 >
 > ***stable https://kubernetes-charts.storage.googleapis.com***
 
--   Perform a Runner installation using Helm chart, from the directory
-    where **values.yaml** file is located:
+-   Perform GitLab Runner installation using Helm chart, from the
+    directory where **values.yaml** file is located:
 
 > helm install gitlab-runner -f ./values.yaml gitlab/gitlab-runner -n
 > gitlabrunner
@@ -549,7 +554,7 @@ required for running that example.
 > *Your GitLab Runner should now be registered against the GitLab
 > instance reachable at: <https://gitlab.acelab.local>*
 
--   (Optional) validate that Runner deployments/pods are running in the
+-   (Optional) validate that Runner deployment/pod are running in the
     designated K8s namespace:
 
 kubectl get deploy, po -n gitlabrunner
@@ -560,38 +565,37 @@ kubectl get deploy, po -n gitlabrunner
 >
 > *NAME READY STATUS RESTARTS AGE*
 >
-> ***pod/gitlab-runner-gitlab-runner-74f7fc87cb-p699g 1/1 Running 0
-> 33s***
+> *pod/gitlab-runner-gitlab-runner-74f7fc87cb-p699g 1/1 Running 0 33s*
 
 -   Verify that newly installed Runner is configured for GitLab
     project(s):
 
-> Navigate to **Settings CI/CD** for the Project and check whether
-> Runner shows as active:
+> Navigate to **Settings CI/CD** **Runners** of the Project and check
+> whether Runner shows as active (green color):
 >
 > ![](./media/image12.png)
 >
 > Notes:
 
--   Usually, Runner configured on a project level will show up in its
+-   Usually, Runner configured on a project level will show up in
     Settings CI/CD automatically, when deployed to integrated cluster.
     In other cases they may be additional steps needed to make Runner
     available for a GitLab project, per
     [documentation](https://docs.gitlab.com/ee/ci/runners/README.html#registering-a-specific-runner)
 
--   Same instance GitLab Runner can be optionally shared among multiple
+-   Same instance of Runner can be optionally shared among multiple
     projects, that can be configured in GitLab "CI/CD Settings Shared
     Runners", per
     [documentation](https://docs.gitlab.com/ee/ci/runners/README.html#registering-a-shared-runner)
 
-Configure and Execute CI/CD Pipeline for Building, Tagging and Publishing Application Image into Registry
----------------------------------------------------------------------------------------------------------
+Configure and Execute CI/CD Pipeline for Building, Tagging and Publishing Application Image into Harbor Registry
+----------------------------------------------------------------------------------------------------------------
 
 Below is an example of a CI/CD pipeline that builds a simple SpringBoot
-microservice from its Java source code using Maven, continues to build a
-container image using Dockerfile residing in a subdirectory and finally
-pushes built image into designated project in the Harbor container image
-repository.
+based microservice from its Java source code using Maven, continues to
+build a container image using Dockerfile residing in a subdirectory and
+finally pushes built image into designated project in the Harbor
+container image repository.
 
 -   Properties of target Harbor project (top level construct for images
     hosting) are shown below. It is not 'Public' and therefore requires
@@ -604,19 +608,21 @@ repository.
 
 > ![](./media/image13.png)
 
--   There are existing image repositories configured for that project,
+-   There are other image repositories configured for that project,
     shown below:
 
 > ![](./media/image14.png)
 >
 > Our GitLab pipeline will be building and pushing images into
-> '**daniel\_project1/dockersample'** repository:
+> '**daniel\_project1/qrcode'** repository that may contain previously
+> uploaded images:
 >
 > ![](./media/image15.png)
 >
-> There is an existing version of an image
+> There is an existing version of an image with 'cicd-v1' tag
 
--   Structure of the example project **dockersample** is shown below:
+-   File structure of the example GitLab project called **dockersample**
+    is shown below:
 
 ![](./media/image16.png)
 
@@ -630,31 +636,28 @@ structure and stages defined in accordance with documentation:
 -   Edit contents of that script file from GitLab IDE (or outside of it
     and use Git client to commit changes to project repository):
 
-![](./media/image17.png)
-
 > **NOTES:**
 
 -   **.gitlab-ci.yaml** is a default CI/CD pipeline file name for any
-    project, other pipeline definitions can be invoked from it
+    GitLab project, other pipelines can be invoked from it
 
 -   Environment variables values referenced in pipeline scripts
-    (CI\_REGISTRY, CI\_REGISTRY\_USER etc.) should be set via "Settings
-    CI/CD Variables" section of the project:
+    (CI\_REGISTRY, CI\_REGISTRY\_USER etc.) should be defned via
+    "Settings CI/CD Variables" section of the project:
 
-> ![](./media/image18.png)
+> ![](./media/image17.png)
 >
 > Scope of those variables should be normally set as 'Environment
-> scope', additional options to protect their values, if required, are
-> available via GitLab settings.
+> scope', additional options to protect their values (such as for
+> passwords etc.) are available via GitLab settings.
 
--   For variables that contain values of Container Image registry
-    (Harbor) certificate, make sure it keeps its original format, as
-    shown below:
+-   For variables that contain values of SSL certificate, make sure it
+    keeps its original format, as shown below:
 
-![](./media/image19.png)
+![](./media/image18.png)
 
-> (reason being that we will basically automate commands like: "**docker
-> login \${CI\_REGISTRY} -u \${CI\_REGISTRY\_USER} -p
+> (reason being that pipeline script will basically automate commands
+> like: "**docker login \${CI\_REGISTRY} -u \${CI\_REGISTRY\_USER} -p
 > \${CI\_REGISTRY\_PASSWORD}"** to run as API call from CI/CD script)
 
 -   To bypass a need for executor containers to have privileged access
@@ -668,7 +671,7 @@ structure and stages defined in accordance with documentation:
 -   Edit default CI/CD pipeline script (.**gitlab-ci.yaml**) at the root
     of GitLab project directory:
 
-![](./media/image16.png)
+![](./media/image19.png)
 
 -   Example of a working version of above script that builds and pushes
     Docker container image from GitLab project sub-folders is shown
@@ -678,22 +681,24 @@ structure and stages defined in accordance with documentation:
 >
 > NOTES:
 
--   Correctly formatted (no TAB characters) section of above
-    **.gitlab-ci.yml** filecan be found below:
+-   Correctly formatted section of above **.gitlab-ci.yml** file can be
+    found below:
 
+> \#added before-script to change working directory
+>
 > before\_script:
 >
 > \- cd \$CI\_PROJECT\_DIR/qrcode
 >
 > stages:
 >
-> **- test**
+> \- test
 >
-> **- build**
+> \- build
 >
-> **- docker-build**
+> \- docker-build
 >
-> **- deploy**
+> \- deploy
 >
 > \#Test stage
 >
@@ -703,7 +708,7 @@ structure and stages defined in accordance with documentation:
 >
 > script:
 >
-> \- echo \"Unite Test scripts will go here..\"
+> \- echo \"Unit Test scripts should go here..\"
 >
 > \#build stage
 >
@@ -711,7 +716,7 @@ structure and stages defined in accordance with documentation:
 >
 > stage: **build**
 >
-> image: **maven:latest**
+> image: maven:latest
 >
 > script:
 >
@@ -719,13 +724,13 @@ structure and stages defined in accordance with documentation:
 >
 > \#docker-build stage
 >
-> docker build package:
+> docker build push:
 >
 > stage: **docker-build**
 >
 > image:
 >
-> name: **gcr.io/kaniko-project/executor:debug**
+> name: gcr.io/kaniko-project/executor:debug
 >
 > entrypoint: \[\"\"\]
 >
@@ -782,50 +787,78 @@ structure and stages defined in accordance with documentation:
 >
 > NOTES:
 
--   This CI/CD script is using **maven:latest** container image for
-    **build** stage jobs execution . It compiles source code using
-    Maven.
+-   This CI/CD script contains the following stages:
+
+    -   **test** to perform app unit testing (not implemented fully)
+
+    -   **build** to perform Maven build of SpringBoot service from Java
+        source code
+
+    -   **docker-build** to perform Docker build/tag/push operations to
+        publish images to container registry
+
+    -   **deploy** to perform deployment of containerized application
+        from container registry to target K8s cluster (covered in detail
+        in Section 6)
+
+-   It is using **maven:latest** container image for **build** stage
+    jobs execution .
 
 -   Then **gcr.io/kaniko-project/executor:debug** container image used
-    for **docker-build** stage jobs execution builds image defined in
-    Dockerfile and pushes it into registry defined by
+    for **docker-build** stage jobs execution to build an image defined
+    in Dockerfile and pushes it into registry defined by
     CI\_REGISTRY\_IMAGE environment variable with a tag defined in the
     CI\_REGISTRY\_TAG\_DEV
 
--   For now, we only want to deploy the application only when pipeline
-    on **master** branch is run hence the 'only ...' condtion
+-   For now, we only want to deploy the application when pipeline on
+    **master** branch is run hence the 'only -master' condition at the
+    end of stage script
 
-
--   Pipeline execution progress for each stage can be monitored in real
-    time:
+```{=html}
+<!-- -->
+```
+-   Pipeline execution progress and results (success/failure) for each
+    stage can be monitored in real time as shown for build stage below:
 
 > ![](./media/image21.png)
 >
-> and also reviewed after its completion via GitLab CI/CD UI, as shown
-> below:
+> and reviewed in detail during or after its completion via GitLab CI/CD
+> UI, as shown below for **build** stage:
 >
 > ![](./media/image22.png)
-
--   If Pipeline execution is successful, in the target Harbor
-    project/repository there should be a new built/pushed image(s) from
-    GitLab project, tagged according to passed value of
-    CI\_REGISTRY\_TAG variable and scanned for vulnerabilities, per
-    project settings:
-
+>
+> And for **docker-build** stage
+>
 > ![](./media/image23.png)
 
--   Notes on additional GitLab CI/CD resources and Best practices:
+-   If Pipeline execution is successful, in the designated Harbor
+    project/repository there should be a new container image(s) from
+    GitLab project, tagged according to passed value of
+    CI\_REGISTRY\_TAG\_DEV variable and scanned for vulnerabilities, per
+    project settings:
 
-    -   Examples of end-to-end Docker container build and deployment
-        automation via GitLab CI/CD pipelines can be found in various
-        blogs such as:
+> ![](./media/image24.png)
+
+-   Notes:
+
+    -   This part of pipeline essentially implements its "CI" use case
+        by automating source code and docker container build and upload
+        to a centralized image repository for further use in CD
+        processes
+
+    ```{=html}
+    <!-- -->
+    ```
+    -   Other Examples of end-to-end Docker container build and
+        deployment automation via GitLab CI/CD pipelines can be found in
+        various blogs such as:
         https://sanderknape.com/2019/02/automated-deployments-kubernetes-gitlab/
 
     -   Operations teams that just need to run stabilized builds may use
-        "Auto DevOps" GitLab mode and run pipelines defined in
-        **.gitlab-ci.yaml** as in example above.
+        "Auto DevOps" GitLab mode or run additional pipelines defined
+        via **.gitlab-ci.yaml** as in example above.
 
-    -   Developers may need to create their own customized pipelines,
+    -   If developers need to create their own customized pipelines,
         please see GitLab documentation:
         https://gitlab.acelab.local/help/ci/pipelines/settings\#custom-ci-configuration-path
 
@@ -834,22 +867,21 @@ Configure and Execute CI/CD Pipeline for Deployment of Application from Registry
 
 In this section we will continue building our end-to-end CI/CD pipeline
 that implements automated deployment of container images from Harbor
-registry (pushed by previous CI/CD stages) into TKGI Kubernetes cluster
-integrated with our project
+registry selected by tags into TKGI K8s cluster(s) integrated with our
+project thus completing "Continuous Deployment" part of CI/CD
 
 -   Similar to how it was done in Section 3 (for deployment of GitLab
-    Runner into the **mgr-cluster-test1** K8s cluster), we will
-    integrate a TKGI K8s cluster **mgr-cluster-test2** for deployment of
-    an application to our GitLab project. Below are properties of an
-    integrated K8s cluster for our project "dockersample":
+    Runner into the **daniel-lab2-small1-sharedt1** K8s cluster), we
+    will integrate a K8s cluster **mgr-cluster-test2** for deployment of
+    an application from our GitLab project. Below are properties of an
+    integrated K8s cluster for our project, **dockersample**:
 
-> ![](./media/image24.png)
+> ![](./media/image25.png)
 >
-> NOTE: Optional project namespace property will map into K8s namespace
+> NOTE: Optional Project namespace property will map into K8s namespace
 > that would be set as a target namespace for applications deployment.
 > In our example, that namespace is "qrcode" and it will need to exist
-> in the target K8s cluster when application will be deployed by CI/CD
-> pipeline
+> in the K8s cluster when application will be deployed by CI/CD pipeline
 
 -   We will add 2 Kubernetes related files to our GitLab project
     repository:
@@ -859,11 +891,11 @@ integrated with our project
         (gitlab-service-account.yaml)
 
     -   Deployment descriptor for deployment of application containers
-        into K8s cluster (deployment\_harbor.yaml)
+        into K8s cluster (deployment\_qrcode.yaml)
 
-![](./media/image25.png)
+> ![](./media/image26.png)
 
--   Below is the content of **deployment\_harbor.yaml** file -- a pretty
+-   Below is content of **deployment\_qrcode.yaml** file -- a pretty
     standard K8s Deployment descriptor that specifies image name, labels
     and number of replicas to be created in ReplicaSet as well as K8s
     secret with Harbor login credentials that would need to exist in the
@@ -926,33 +958,35 @@ integrated with our project
 > \#NOTE: cicd-v3 tag is for deploymet branch, will have to use another
 > one for production
 >
-> image: **harbor.corp.local/daniel\_project1/dockersample:cicd-v3**
+> image: **harbor.corp.local/daniel\_project1/qrcode:cicd-v3**
 >
 > ports:
 >
 > \- containerPort: 8080
 >
-> NOTE: in this version, the images tagged as
-> **harbor.corp.local/daniel\_project1/dockersample:cicd-v3** is
-> expected to be present in the Harbor repository at the time of
-> deployment to K8s. That tag value is contained in the
-> CA\_REGISTRY\_TAG\_DEV variable below
+> NOTE: in this version, an image tagged as
+> **harbor.corp.local/daniel\_project1/qrcode:cicd-v3** is expected to
+> be present in the Harbor repository at the time of deployment to K8s
+> (automated in the previous stages of CI/CD pipeline). That tag value
+> is contained in the CA\_REGISTRY\_TAG\_DEV variable below
 >
-> ![](./media/image26.png)
+> ![](./media/image27.png)
 
--   Now we need to add the stage to our CI/CD pipeline script
-    (.gitlab-ci.yaml defined in the Section 4) that will take care of
-    establishing connection to target K8s cluster and performing all
-    necessary steps to deploy our application using deployment
+-   Now we need to implement **deploy** stage of our CI/CD pipeline
+    script (same .gitlab-ci.yaml file in our example) that will take
+    care of establishing connection to target K8s cluster and performing
+    all necessary steps to deploy our application using deployment
     descriptor above. For now, we only want to deploy the application
     only when pipeline on **master** branch is run hence the 'only ...'
-    condtion
+    condition
 
 > .....
 >
+> \#deploy stage
+>
 > deploy to development:
 >
-> stage: **deploy**
+> stage: deploy
 >
 > image:
 > \"**registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v0.15.0**\"
@@ -968,10 +1002,10 @@ integrated with our project
 > \- echo \"KUBE\_URL:\"
 >
 > \- echo \$KUBE\_URL
-
+>
 > \- echo \"KUBE\_NAMESPACE:\"
 >
-> \- echo \"$KUBE\_NAMESPACE:\"
+> \- echo \$KUBE\_NAMESPACE
 >
 > \- echo \"Path to kubeconfig:\"
 >
@@ -979,7 +1013,7 @@ integrated with our project
 >
 > \- echo \"=================================\"
 >
-> \- echo \"Trying to \'get nodes\' using kubeconfig path 
+> \- echo \"Trying to \'get nodes\' using default kubeconfig
 > setting\...\"
 >
 > \# will use syntax like kubectl config \--kubeconfig=config-demo
@@ -993,14 +1027,21 @@ integrated with our project
 >
 > \- kubectl config current-context
 >
-> \- echo \"Getting K8s Nodes info w/o using context:\"
+> \- echo \"Getting Nodes info w/o using context:\"
 >
 > \- kubectl get nodes
 >
 > \#- echo
 > \"\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--\"
 >
-> \# TODO: add error handling in case if NS exists
+> \# TODO: add error handling in case if NS exists or just delete
+> proactively
+>
+> **- kubectl delete ns \$KUBE\_NAMESPACE**
+>
+> \- sleep 60
+>
+> \# now create it again
 >
 > \- kubectl create ns \$KUBE\_NAMESPACE
 >
@@ -1017,22 +1058,20 @@ integrated with our project
 > \- echo \"Will deploy QR Code container app to target
 > cluster/namespace:\"
 >
-> \- **kubectl apply -f \$CI\_PROJECT\_DIR/deployment\_harbor.yaml**
+> \- kubectl apply -f \$CI\_PROJECT\_DIR/deployment\_qrcode.yaml
 >
-> \- echo \"QR Code container app deployed to K8s cluster, checking Pod
+> \- echo \"QR Code container App deployed to K8s cluster, checking Pod
 > status:\"
->
-> \#- kubectl get po -n default
 >
 > \- kubectl get po -n \$KUBE\_NAMESPACE
 >
-> **environment**:
+> environment:
 >
 > name: development
 >
 > \#deploy app to K8s only when a pipeline on master branch is run
 >
-> **only**:
+> only:
 >
 > \- master
 >
@@ -1044,35 +1083,38 @@ integrated with our project
     that has kubectl CLI utility pre-installed
 
 -   \$KUBE\_URL, \$KUBE\_TOKEN, \$KUBE\_NAMESPACE and \$KUBECONFIG are
-    K8s environment variables that become available to CI/CD script once
-    an **environment** is defined in there, as in the last 2 lines above
+    K8s environment variables that become available to CI/CD scripts
+    once an **environment** is defined, as in the last 2 lines above
     (see details in documentation:
     <https://docs.gitlab.com/ee/user/project/clusters/#deploying-to-a-kubernetes-cluster>)
 
 -   \$KUBECONFIG variable contains path to K8s configuration file placed
-    on the 'builder' image that can be used by 'kubectl' CLI utility,
+    on the 'builder' image that can be used by 'kubectl' CLI utility -
     pretty much the only parameter needed for access to target cluster
 
 -   Namespace contained in the \$KUBE\_NAMESPACE needs to exist in the
-    target K8s cluster, so it is getting created by kubectl create ns
-    \$KUBE\_NAMESPACE command
+    target K8s cluster, so it is first deleted by kubectl delete ns
+    \$KUBE\_NAMESPACE to make sure there is no error and then getting
+    created by kubectl create ns \$KUBE\_NAMESPACE command
 
--   A secret containing Harbor private registry credentials for
-    deployment of an image needs to exist in that namespace and gets
-    created by kubectl create secret docker-registry regcred ...
-    command.
+-   A secret containing Harbor registry credentials for deployment of an
+    image needs to exist in that namespace and gets created by kubectl
+    create secret docker-registry regcred ... command.
 
 -   Actual application deployment is done by running kubectl apply -f
-    \$CI\_PROJECT\_DIR/deployment\_harbor.yaml command that is using
+    \$CI\_PROJECT\_DIR/deployment\_qrcode.yaml command that is using
     deployment descriptor above
 
--   As mentioned above, our pipeline deploy the application into
-    **development** environment only when pipeline on **master** branch
-    is run
+-   As mentioned above, current version of pipeline deploys the
+    application into **development** environment only when pipeline on
+    **master** branch is run
 
 -   Multiple '- echo ' operators are placed into the script for
     debugging purposes and can be removed
 
+```{=html}
+<!-- -->
+```
 -   When our project CI/CD pipeline is executed end-to-end, it first
     runs a unit test stage (not implemented, has a placeholder), then
     rebuilds a Docker image from the source code and instructions
@@ -1080,32 +1122,34 @@ integrated with our project
     \$CI\_REGISTRY\_TAG\_DEV and pushes it into corresponding repository
     in Harbor.
 
--   An output of **docker build package** script section is shown below:
+-   An output of **docker build push** job section is shown below:
 
-> ![](./media/image22.png)
+> ![](./media/image28.png)
 >
-> Then script in the **deploy** stage performs deployment of checked
+> Script in the **deploy** job section performs deployment of tagged
 > container image from Harbor registry according to deployment
 > descriptor into designated namespace in the integrated K8s cluster:
 >
-> ![](./media/image27.png)
+> ![](./media/image29.png)
 >
-> And checking directly in the **mgr-cluster-test2** K8s cluster, we can
-> see 2 replicas of **qrcode-java** running, as expected:
+> Checking directly in the **mgr-cluster-test2** integrated K8s cluster,
+> we can see 2 replicas of **qrcode-java** pod running, as expected:
 >
 > kubectl get po -n qrcode
 >
+> **kubectl get po -n qrcode**
+>
 > **NAME READY STATUS RESTARTS AGE**
 >
-> **qrcode-java-68587f4bcd-2vsbw 1/1 Running 0 17m**
+> **qrcode-java-7f77794b99-gfz4c 1/1 Running 0 46m**
 >
-> **qrcode-java-68587f4bcd-qtrx7 1/1 Running 0 17m**
+> **qrcode-java-7f77794b99-n8dph 1/1 Running 0 46m**
 >
-> **and Pod details**
+> and Pod details
 >
-> \$ kubectl describe po qrcode-java-68587f4bcd-2vsbw -n qrcode
+> kubectl describe po qrcode-java-7f77794b99-gfz4c -n qrcode
 >
-> Name: qrcode-java-68587f4bcd-2vsbw
+> Name: qrcode-java-7f77794b99-gfz4c
 >
 > Namespace: qrcode
 >
@@ -1113,35 +1157,35 @@ integrated with our project
 >
 > Node: e45756cc-114c-4918-b4ba-55268f4e7250/172.15.2.4
 >
-> Start Time: Mon, 01 Jun 2020 18:59:16 +0000
+> Start Time: Wed, 03 Jun 2020 20:52:22 +0000
 >
 > Labels: app=qrcode
 >
-> pod-template-hash=68587f4bcd
+> pod-template-hash=7f77794b99
 >
 > Annotations: \<none\>
 >
-> **Status: Running**
+> Status: Running
 >
-> **IP: 172.16.26.2**
+> IP: 172.16.26.3
 >
-> **IPs:**
+> IPs:
 >
-> **IP: 172.16.26.2**
+> IP: 172.16.26.3
 >
-> **Controlled By: ReplicaSet/qrcode-java-68587f4bcd**
+> Controlled By: ReplicaSet/qrcode-java-7f77794b99
 >
-> **Containers:**
+> Containers:
 >
-> **qrcode:**
+> qrcode:
 >
-> **Container ID:
-> docker://233c8775a01d4ae08bc54f6496fea435f9cea78e5e3d3ec2472c74e9cd1b5f4d**
+> Container ID:
+> docker://04a88bb3c480e45d6c9d0ac60184b09c2e345b637260c707c6ea2ed4db4ed04d
 >
-> **Image: harbor.corp.local/daniel\_project1/dockersample:cicd-v3**
+> Image: harbor.corp.local/daniel\_project1/qrcode:cicd-v2
 >
 > Image ID:
-> docker-pullable://harbor.corp.local/daniel\_project1/dockersample\@sha256:2cd6af4371930ce694919098858cfed5cb0c3d4261c1365e9d4c11fc31cfa387
+> docker-pullable://harbor.corp.local/daniel\_project1/qrcode\@sha256:be8668ca7dcf8e4f53fa527152548592e8d7b12d8b25206498c98ad9cad15aeb
 >
 > Port: 8080/TCP
 >
@@ -1149,7 +1193,7 @@ integrated with our project
 >
 > State: Running
 >
-> Started: Mon, 01 Jun 2020 18:59:19 +0000
+> Started: Wed, 03 Jun 2020 20:52:30 +0000
 >
 > Ready: True
 >
@@ -1159,7 +1203,7 @@ integrated with our project
 >
 > Mounts:
 >
-> /var/run/secrets/kubernetes.io/serviceaccount from default-token-c6f45
+> /var/run/secrets/kubernetes.io/serviceaccount from default-token-lrjln
 > (ro)
 >
 > Conditions:
@@ -1173,13 +1217,35 @@ integrated with our project
 > ContainersReady True
 >
 > PodScheduled True
+>
+> Volumes:
+>
+> default-token-lrjln:
+>
+> Type: Secret (a volume populated by a Secret)
+>
+> SecretName: default-token-lrjln
+>
+> Optional: false
+>
+> QoS Class: BestEffort
+>
+> Node-Selectors: \<none\>
+>
+> Tolerations: node.kubernetes.io/not-ready:NoExecute for 300s
+>
+> node.kubernetes.io/unreachable:NoExecute for 300s
 
-Finally, using kube-proxy port forwarding we can post a request to one
-of the Pods and get a response:
+Finally, using kube-proxy port forwarding from one of the pods, we can
+post a request and get a response (binary):
 
-**curl -d \'{\"merchantID\":\"123\", \"merchantName\":\"daniel\"}\' -H
+kubectl port-forward qrcode-java-7f77794b99-gfz4c 8090:8080 -n qrcode
+
+..
+
+curl -d \'{\"merchantID\":\"123\", \"merchantName\":\"daniel\"}\' -H
 \"Content-Type: application/json\" -X POST
-http://localhost:8080/generateQRCode \--output QRCode.out**
+http://localhost:8090/generateQRCode \--output QRCode.out
 
 \% Total % Received % Xferd Average Speed Time Time Time Current
 
@@ -1191,15 +1257,16 @@ NOTES:
 
 -   In addition to **development** environment, other environments (e.g.
     **staging**, **production etc.**) can be defined in the CI/CD script
-    sections and contain different deployment instructions/parameters
-    such as Docker image tags. That's the purpose of having
-    CI\_REGISTRY\_TAG\_PROD variable. Please see documentation for CI/CD
-    pipelines: https://docs.gitlab.com/ee/ci/pipelines/index.html
+    sections to direct deployments and contain different
+    instructions/parameters (such as Docker image tags). That's the
+    purpose of having CI\_REGISTRY\_TAG\_PROD variable. Please see
+    documentation for using environments in CI/CD pipelines:
+    https://docs.gitlab.com/ee/ci/pipelines/index.html
 
--   There may be **test** stage defined, with jobs for testing deployed
-    application.
+-   Actual unit testing script can be defined in the **test** stage.
 
--   As in our example, GitLab Runner containers and deployed
-    Applications may run in different K8s clusters (in fact, that may be
-    preferred) - they just need to have networking/DNS access to each
-    other as **mgr-cluster-test1** and **mgr-cluster-test2** do**.**
+-   As in our example, GitLab Runner containers that run scripts defined
+    in pipelines and deployed Applications may run in different K8s
+    clusters (in fact, that may be preferred). Those clusters just need
+    to have networking/DNS access to each other as
+    **daniel-lab2-small1-sharedt1** and **mgr-cluster-test2** do**.**
