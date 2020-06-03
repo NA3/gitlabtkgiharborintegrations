@@ -591,11 +591,10 @@ kubectl get deploy, po -n gitlabrunner
 Configure and Execute CI/CD Pipeline for Building, Tagging and Publishing Application Image into Harbor Registry
 ----------------------------------------------------------------------------------------------------------------
 
-Below is an example of a CI/CD pipeline that builds a simple SpringBoot
-based microservice from its Java source code using Maven, continues to
-build a container image using Dockerfile residing in a subdirectory and
-finally pushes built image into designated project in the Harbor
-container image repository.
+We will start by building "Continious Integration" part of our CI/CD pipeline. 
+It compiles a simple SpringBoot based microservice from its Java source code
+using Maven, continues to build a container image using provided Dockerfile and pushes
+built/tagged image into designated project in the Harbor image repository.
 
 -   Properties of target Harbor project (top level construct for images
     hosting) are shown below. It is not 'Public' and therefore requires
@@ -859,10 +858,10 @@ structure and stages defined in accordance with documentation:
 Configure and Execute CI/CD Pipeline for Deployment of Application from Registry to K8s Cluster
 -----------------------------------------------------------------------------------------------
 
-In this section we will continue building our end-to-end CI/CD pipeline
-that implements automated deployment of container images from Harbor
+In this section we will continue building our end-to-end CI/CD pipeline.
+We will add implemenatin of deployment of container images from Harbor
 registry selected by tags into TKGI K8s cluster(s) integrated with our
-project thus completing "Continuous Deployment" part of CI/CD
+project. That should logically complete "Continuous Deployment" part of CI/CD pipeline
 
 -   Similar to how it was done in Section 3 (for deployment of GitLab
     Runner into the **daniel-lab2-small1-sharedt1** K8s cluster), we
@@ -1264,3 +1263,8 @@ NOTES:
     clusters (in fact, that may be preferred). Those clusters just need
     to have networking/DNS access to each other as
     **daniel-lab2-small1-sharedt1** and **mgr-cluster-test2** do**.**
+
+Conclusion 
+----------
+ 
+We hope this document was useful. As you try these configuration steps, please provide any feedback or questions in the comments section for this document on code.vmware.com. Also, do let us know if you have any suggestions or if you would like to see guidance on other topics. 
