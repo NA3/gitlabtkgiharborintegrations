@@ -1,4 +1,4 @@
-![]![](./media/image3.png)
+![](./media/image3.png)
 
 Table of Contents
 
@@ -814,9 +814,6 @@ structure and stages defined in accordance with documentation:
     **master** branch is run hence the 'only -master' condition at the
     end of stage script
 
-```{=html}
-<!-- -->
-```
 -   Pipeline execution progress and results (success/failure) for each
     stage can be monitored in real time as shown for build stage below:
 
@@ -846,9 +843,6 @@ structure and stages defined in accordance with documentation:
         to a centralized image repository for further use in CD
         processes
 
-    ```{=html}
-    <!-- -->
-    ```
     -   Other Examples of end-to-end Docker container build and
         deployment automation via GitLab CI/CD pipelines can be found in
         various blogs such as:
