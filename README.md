@@ -861,7 +861,7 @@ Configure and Execute CI/CD Pipeline for Deployment of Application from Registry
 In this section we will continue building our end-to-end CI/CD pipeline.
 We will add implemenatin of deployment of container images from Harbor
 registry selected by tags into TKGI K8s cluster(s) integrated with our
-project. That should logically complete "Continuous Deployment" part of CI/CD pipeline
+project. That should logically complete "Contunuous Deployment" part of CI/CD pipeline
 
 -   Similar to how it was done in Section 3 (for deployment of GitLab
     Runner into the **daniel-lab2-small1-sharedt1** K8s cluster), we
