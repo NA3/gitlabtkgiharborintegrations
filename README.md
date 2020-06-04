@@ -14,7 +14,7 @@ with project
 7](#install-and-configure-gitlab-runner-using-helm-chart-associate-it-with-project)
 
 [5. Configure and Execute CI/CD Pipeline for Building, Tagging and
-Publishing Application Image into Harbor Registry 13](#_Toc42088289)
+Publishing Application Image into Harbor Registry 13](#configure and Execute CI/CD Pipeline for Building, Tagging and Publishing Application Image into Harbor Registry)
 
 [6. Configure and Execute CI/CD Pipeline for Deployment of Application
 from Registry to K8s Cluster
@@ -1131,7 +1131,7 @@ project. That should logically complete "Contunuous Deployment" part of CI/CD pi
 > container image from Harbor registry according to deployment
 > descriptor into designated namespace in the integrated K8s cluster:
 >
-> ![](./media/image29.png)
+> ![](./media/image30.png)
 >
 > Checking directly in the **mgr-cluster-test2** integrated K8s cluster,
 > we can see 2 replicas of **qrcode-java** pod running, as expected:
