@@ -14,7 +14,7 @@ with project
 7](#install-and-configure-gitlab-runner-using-helm-chart-associate-it-with-project)
 
 [5. Configure and Execute CI/CD Pipeline for Building, Tagging and
-Publishing Application Image into Harbor Registry 13](#
+Publishing Application Image into Harbor Registry 13](#configure-and-execute-cicd-pipeline-for-building,tagging-and-publishing -application-image-into-harbor-registry)
 
 [6. Configure and Execute CI/CD Pipeline for Deployment of Application
 from Registry to K8s Cluster
@@ -1113,9 +1113,7 @@ project. That should logically complete "Contunuous Deployment" part of CI/CD pi
 -   Multiple '- echo ' operators are placed into the script for
     debugging purposes and can be removed
 
-```{=html}
-<!-- -->
-```
+
 -   When our project CI/CD pipeline is executed end-to-end, it first
     runs a unit test stage (not implemented, has a placeholder), then
     rebuilds a Docker image from the source code and instructions
