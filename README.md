@@ -16,6 +16,7 @@ with project
 [5. Configure and Execute CI/CD Pipeline for Building, Tagging and
 Publishing Application Image into Harbor Registry 14](#_Toc42176726)
 
+
 [6. Configure and Execute CI/CD Pipeline for Deployment of Application
 from Registry to K8s Cluster
 21](#configure-and-execute-cicd-pipeline-for-deployment-of-application-from-registry-to-k8s-cluster)
@@ -1123,15 +1124,16 @@ Configure and Execute CI/CD Pipeline for Deployment of Application from Registry
 
 -   Multiple '- echo ' operators are placed into the script for
     debugging purposes and can be removed
+	
 
--   When our project CI/CD pipeline is executed end-to-end, it first
+- When our project CI/CD pipeline is executed end-to-end, it first
     runs a unit test stage (not implemented, has a placeholder), then
     rebuilds a Docker image from the source code and instructions
     contained in the Dockerfile, tags it with value
     \$CI\_REGISTRY\_TAG\_DEV and pushes it into corresponding repository
     in Harbor.
 
--   An output of **docker build push** job section is shown below:
+- An output of **docker build push** job section is shown below:
 
 > ![](./media/image28.png)
 >
@@ -1139,7 +1141,7 @@ Configure and Execute CI/CD Pipeline for Deployment of Application from Registry
 > container image from Harbor registry according to deployment
 > descriptor into designated namespace in the integrated K8s cluster:
 >
-> ![](./media/image29.png)
+> ![](./media/image30.png)
 >
 > Checking directly in the **mgr-cluster-test2** integrated K8s cluster,
 > we can see 2 replicas of **qrcode-java** pod running, as expected:
@@ -1175,6 +1177,7 @@ QRcode binary file back:
 >
 > 100 312 100 267 100 45 2321 391 \--:\--:\-- \--:\--:\-- \--:\--:\--
 > 2713
+
 
 NOTES:
 
