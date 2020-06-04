@@ -2,23 +2,23 @@
 
 Table of Contents
 
-[1. Introduction 2](#introduction)
+[1. Introduction 3](#introduction)
 
-[2. Pre-requisites 2](#pre-requisites)
+[2. Pre-requisites 3](#pre-requisites)
 
 [3. Add Existing TKGI K8s Cluster to GitLab project
-3](#add-existing-tkgi-k8s-cluster-to-gitlab-project)
+4](#add-existing-tkgi-k8s-cluster-to-gitlab-project)
 
 [4. Install and configure GitLab Runner using Helm chart, associate it
 with project
-7](#install-and-configure-gitlab-runner-using-helm-chart-associate-it-with-project)
+8](#install-and-configure-gitlab-runner-using-helm-chart-associate-it-with-project)
 
 [5. Configure and Execute CI/CD Pipeline for Building, Tagging and
-Publishing Application Image into Harbor Registry 13](#_Toc42088289)
+Publishing Application Image into Harbor Registry 14](#_Toc42176726)
 
 [6. Configure and Execute CI/CD Pipeline for Deployment of Application
 from Registry to K8s Cluster
-20](#configure-and-execute-cicd-pipeline-for-deployment-of-application-from-registry-to-k8s-cluster)
+21](#configure-and-execute-cicd-pipeline-for-deployment-of-application-from-registry-to-k8s-cluster)
 
 [7. Conclusion 29](#conclusion)
 
@@ -217,7 +217,7 @@ in the "Add Existing Cluster" GitLab screen:
 -   **Click "Add Cluster" button -- should get a confirmation of
     successful update on GitLab UI**:
 
-![](./media/image7.png)
+> ![](./media/image7.png)
 
 NOTE: in case if a warning about blocked requests to local networks is
 displayed (when GitLab VM and K8s cluster API addresses are on the same
@@ -225,7 +225,7 @@ network), we may need to explicitly allow requests to local networks
 from Web Hooks and Services from GitLab Admin UI, following KB Article:
 <https://gitlab.com/gitlab-org/gitlab-foss/-/issues/57948>
 
-![](./media/image8.png)
+> ![](./media/image8.png)
 
 Install and configure GitLab Runner using Helm chart, associate it with project
 -------------------------------------------------------------------------------
@@ -593,10 +593,11 @@ kubectl get deploy, po -n gitlabrunner
 Configure and Execute CI/CD Pipeline for Building, Tagging and Publishing Application Image into Harbor Registry
 ----------------------------------------------------------------------------------------------------------------
 
-We will start by building "Continious Integration" part of our CI/CD pipeline. 
-It compiles a simple SpringBoot based microservice from its Java source code
-using Maven, continues to build a container image using provided Dockerfile and pushes
-built/tagged image into designated project in the Harbor image repository.
+> We will start by building \"Continuous Integration\" part of our CI/CD
+> pipeline. It compiles a simple SpringBoot based microservice from its
+> Java source code using Maven, continues to build a container image
+> using provided Dockerfile and pushes built/tagged image into
+> designated project in the Harbor image repository.
 
 -   Properties of target Harbor project (top level construct for images
     hosting) are shown below. It is not 'Public' and therefore requires
@@ -844,6 +845,9 @@ structure and stages defined in accordance with documentation:
         to a centralized image repository for further use in CD
         processes
 
+    ```{=html}
+    <!-- -->
+    ```
     -   Other Examples of end-to-end Docker container build and
         deployment automation via GitLab CI/CD pipelines can be found in
         various blogs such as:
@@ -860,10 +864,11 @@ structure and stages defined in accordance with documentation:
 Configure and Execute CI/CD Pipeline for Deployment of Application from Registry to K8s Cluster
 -----------------------------------------------------------------------------------------------
 
-In this section we will continue building our end-to-end CI/CD pipeline.
-We will add implemenatin of deployment of container images from Harbor
-registry selected by tags into TKGI K8s cluster(s) integrated with our
-project. That should logically complete "Contunuous Deployment" part of CI/CD pipeline
+> In this section we will continue building our end-to-end CI/CD
+> pipeline stage that implements automated deployment of container
+> images from Harbor registry (selected by tags) into TKGI K8s cluster
+> integrated with our project, thus completing "Continuous Deployment"
+> part of CI/CD.
 
 -   Similar to how it was done in Section 3 (for deployment of GitLab
     Runner into the **daniel-lab2-small1-sharedt1** K8s cluster), we
@@ -1032,7 +1037,7 @@ project. That should logically complete "Contunuous Deployment" part of CI/CD pi
 > \# TODO: add error handling in case if NS exists or just delete
 > proactively
 >
-> **- kubectl delete ns \$KUBE\_NAMESPACE**
+> \- kubectl delete ns \$KUBE\_NAMESPACE
 >
 > \- sleep 60
 >
@@ -1060,17 +1065,20 @@ project. That should logically complete "Contunuous Deployment" part of CI/CD pi
 >
 > \- kubectl get deploy,po -n \$KUBE\_NAMESPACE
 >
-> \- kubectl expose deployment qrcode-java --type=LoadBalancer --name=qrcode-lb --port=8090 --target-port=8080 -n $KUBE_NAMESPACE
+> \- kubectl expose deployment qrcode-java \--type=LoadBalancer
+> \--name=qrcode-lb \--port=8090 \--target-port=8080 -n
+> \$KUBE\_NAMESPACE
 >
-> \- echo "QR Code App should be exposed via LoadBalancer IP on port 8090:"
+> \- echo \"QR Code App should be exposed via LoadBalancer IP on port
+> 8090:\"
 >
-> \- kubectl get svc -n $KUBE_NAMESPACE
+> \- kubectl get svc -n \$KUBE\_NAMESPACE
 >
 > environment:
 >
 > name: development
 >
-> \#deploy app to K8s only when a pipeline on 'master' branch is run
+> \#deploy app to K8s only when a pipeline on master branch is run
 >
 > only:
 >
@@ -1106,6 +1114,9 @@ project. That should logically complete "Contunuous Deployment" part of CI/CD pi
     \$CI\_PROJECT\_DIR/deployment\_qrcode.yaml command that is using
     deployment descriptor above
 
+-   'sleep' operators added to allow previous command to complete and
+    avoid error of creating namespace before deletion is committed.
+
 -   As mentioned above, current version of pipeline deploys the
     application into **development** environment only when pipeline on
     **master** branch is run
@@ -1113,9 +1124,6 @@ project. That should logically complete "Contunuous Deployment" part of CI/CD pi
 -   Multiple '- echo ' operators are placed into the script for
     debugging purposes and can be removed
 
-```{=html}
-<!-- -->
-```
 -   When our project CI/CD pipeline is executed end-to-end, it first
     runs a unit test stage (not implemented, has a placeholder), then
     rebuilds a Docker image from the source code and instructions
@@ -1136,123 +1144,37 @@ project. That should logically complete "Contunuous Deployment" part of CI/CD pi
 > Checking directly in the **mgr-cluster-test2** integrated K8s cluster,
 > we can see 2 replicas of **qrcode-java** pod running, as expected:
 >
-> kubectl get po -n qrcode
+> kubectl get deploy,po,svc -n qrcode
 >
-> **kubectl get po -n qrcode**
+> NAME READY UP-TO-DATE AVAILABLE AGE
 >
-> **NAME READY STATUS RESTARTS AGE**
+> **deployment.apps/qrcode-java** 2/2 2 2 128m
 >
-> **qrcode-java-7f77794b99-gfz4c 1/1 Running 0 46m**
+> NAME READY STATUS RESTARTS AGE
 >
-> **qrcode-java-7f77794b99-n8dph 1/1 Running 0 46m**
+> pod/qrcode-java-7f77794b99-dd2hf 1/1 Running 0 128m
 >
-> and Pod details
+> pod/qrcode-java-7f77794b99-g8cr7 1/1 Running 0 128m
 >
-> kubectl describe po qrcode-java-7f77794b99-gfz4c -n qrcode
+> NAME TYPE CLUSTER-IP EXTERNAL-IP PORT(S) AGE
 >
-> Name: qrcode-java-7f77794b99-gfz4c
->
-> Namespace: qrcode
->
-> Priority: 0
->
-> Node: e45756cc-114c-4918-b4ba-55268f4e7250/172.15.2.4
->
-> Start Time: Wed, 03 Jun 2020 20:52:22 +0000
->
-> Labels: app=qrcode
->
-> pod-template-hash=7f77794b99
->
-> Annotations: \<none\>
->
-> Status: Running
->
-> IP: 172.16.26.3
->
-> IPs:
->
-> IP: 172.16.26.3
->
-> Controlled By: ReplicaSet/qrcode-java-7f77794b99
->
-> Containers:
->
-> qrcode:
->
-> Container ID:
-> docker://04a88bb3c480e45d6c9d0ac60184b09c2e345b637260c707c6ea2ed4db4ed04d
->
-> Image: harbor.corp.local/daniel\_project1/qrcode:cicd-v2
->
-> Image ID:
-> docker-pullable://harbor.corp.local/daniel\_project1/qrcode\@sha256:be8668ca7dcf8e4f53fa527152548592e8d7b12d8b25206498c98ad9cad15aeb
->
-> Port: 8080/TCP
->
-> Host Port: 0/TCP
->
-> State: Running
->
-> Started: Wed, 03 Jun 2020 20:52:30 +0000
->
-> Ready: True
->
-> Restart Count: 0
->
-> Environment: \<none\>
->
-> Mounts:
->
-> /var/run/secrets/kubernetes.io/serviceaccount from default-token-lrjln
-> (ro)
->
-> Conditions:
->
-> Type Status
->
-> Initialized True
->
-> Ready True
->
-> ContainersReady True
->
-> PodScheduled True
->
-> Volumes:
->
-> default-token-lrjln:
->
-> Type: Secret (a volume populated by a Secret)
->
-> SecretName: default-token-lrjln
->
-> Optional: false
->
-> QoS Class: BestEffort
->
-> Node-Selectors: \<none\>
->
-> Tolerations: node.kubernetes.io/not-ready:NoExecute for 300s
->
-> node.kubernetes.io/unreachable:NoExecute for 300s
+> service/qrcode-lb LoadBalancer 10.100.200.71 **10.40.14.88**
+> 8090:31877/TCP 128m
 
-Finally, using kube-proxy port forwarding from one of the pods, we can
-post a request and get a response (binary):
+And finally, we can initiate a POST request with a form data and get a
+QRcode binary file back:
 
-kubectl port-forward qrcode-java-7f77794b99-gfz4c 8090:8080 -n qrcode
-
-..
-
-curl -d \'{\"merchantID\":\"123\", \"merchantName\":\"daniel\"}\' -H
-\"Content-Type: application/json\" -X POST
-http://localhost:8090/generateQRCode \--output QRCode.out
-
-\% Total % Received % Xferd Average Speed Time Time Time Current
-
-Dload Upload Total Spent Left Speed
-
-100 312 100 267 100 45 2321 391 \--:\--:\-- \--:\--:\-- \--:\--:\-- 2713
+> curl -d \'{\"merchantID\":\"123\", \"merchantName\":\"riaz\"}\' -H
+> \"Content-Type: application/json\" -X POST
+> [http://10.40.14.88:8090/generateQRCode \--output
+> QRCode.out](http://10.40.14.88:8090/generateQRCode%20--output%20QRCode.out)
+>
+> \% Total % Received % Xferd Average Speed Time Time Time Current
+>
+> Dload Upload Total Spent Left Speed
+>
+> 100 312 100 267 100 45 2321 391 \--:\--:\-- \--:\--:\-- \--:\--:\--
+> 2713
 
 NOTES:
 
@@ -1272,7 +1194,11 @@ NOTES:
     to have networking/DNS access to each other as
     **daniel-lab2-small1-sharedt1** and **mgr-cluster-test2** do**.**
 
-Conclusion 
+Conclusion
 ----------
- 
-We hope this document was useful. As you try these configuration steps, please provide any feedback or questions in the comments section for this document on code.vmware.com. Also, do let us know if you have any suggestions or if you would like to see guidance on other topics. 
+
+> We hope this document was useful. As you try these configuration
+> steps, please provide any feedback or questions in the comments
+> section for this document on code.vmware.com. Also, please let us know
+> if you have any suggestions or if you would like to see guidance on
+> other topics.
