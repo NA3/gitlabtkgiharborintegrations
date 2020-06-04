@@ -19,6 +19,7 @@ Publishing Application Image into Harbor Registry 13](#_Toc42088289)
 [6. Configure and Execute CI/CD Pipeline for Deployment of Application
 from Registry to K8s Cluster
 20](#configure-and-execute-cicd-pipeline-for-deployment-of-application-from-registry-to-k8s-cluster)
+
 [7. Conclusion 29](#conclusion)
 
 Introduction
