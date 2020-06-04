@@ -139,41 +139,24 @@ Copy the above certificate string value for use in the following steps
 > as an example:
 >
 ```yaml
-> apiVersion: v1
->
-> kind: ServiceAccount
->
-> metadata:
->
-> name: gitlab-admin
->
-> namespace: kube-system
->
-> \-\--
->
-> apiVersion: rbac.authorization.k8s.io/v1beta1
->
-> kind: ClusterRoleBinding
->
-> metadata:
->
-> name: gitlab-admin
->
-> roleRef:
->
-> apiGroup: rbac.authorization.k8s.io
->
-> kind: ClusterRole
->
-> name: cluster-admin
->
-> subjects:
->
-> \- kind: ServiceAccount
->
-> name: gitlab-admin
->
-> namespace: kube-system
+ ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gitlab-service-account
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: gitlab-service-account-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: gitlab-service-account
+    namespace: default
 ```
 
 Create Service account and Cluster Role Binding in the target cluster:
@@ -688,108 +671,58 @@ structure and stages defined in accordance with documentation:
 
 -   Correctly formatted section of above **.gitlab-ci.yml** file can be
     found below:
+    
+```yaml
+ #added before-script to change working directory
+before_script:
+  - cd $CI_PROJECT_DIR/qrcode
+  
+stages:
+  - test
+  - build
+  - docker-build
+  - deploy
 
-> \#added before-script to change working directory
->
-> before\_script:
->
-> \- cd \$CI\_PROJECT\_DIR/qrcode
->
-> stages:
->
-> \- test
->
-> \- build
->
-> \- docker-build
->
-> \- deploy
->
-> \#Test stage
->
-> unit test:
->
-> stage: **test**
->
-> script:
->
-> \- echo \"Unit Test scripts should go here..\"
->
-> \#build stage
->
-> maven-build:
->
-> stage: **build**
->
-> image: maven:latest
->
-> script:
->
-> \- mvn package
->
-> \#docker-build stage
->
-> docker build push:
->
-> stage: **docker-build**
->
-> image:
->
-> name: gcr.io/kaniko-project/executor:debug
->
-> entrypoint: \[\"\"\]
->
-> script:
->
-> \- echo
-> \"{\\\"auths\\\":{\\\"\$CI\_REGISTRY\\\":{\\\"username\\\":\\\"\$CI\_REGISTRY\_USER\\\",\\\"password\\\":\\\"\$CI\_REGISTRY\_PASSWORD\\\"}}}\"
-> \> /kaniko/.docker/config.json
->
-> \#- echo \$CI\_REGISTRY\_CA\_CERT
->
-> \- echo
-> \"\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--\"
->
-> \- echo \"\${CI\_REGISTRY\_CA\_CERT}\" \>
-> /kaniko/ssl/certs/jis-certificates.crt
->
-> \- echo \"Copied Harbor Registry CERT into
-> /kaniko/ssl/certs/jis-certificates.crt:\"
->
-> \- echo
-> \"\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--\"
->
-> \- cat /kaniko/ssl/certs/jis-certificates.crt
->
-> \- echo
-> \"\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--\"
->
-> \- echo \"Project Build Dir:\"
->
-> \- echo \$CI\_PROJECT\_DIR
->
-> \- echo \"Target Harbor reposiory image:\"
->
-> \- echo \$CI\_REGISTRY\_IMAGE
->
-> \- /kaniko/executor \--context \$CI\_PROJECT\_DIR/qrcode \--dockerfile
-> \$CI\_PROJECT\_DIR/qrcode/Dockerfile \--destination
-> \${CI\_REGISTRY\_IMAGE}:\${CI\_REGISTRY\_TAG\_DEV}
->
-> \- echo \"CI/CD job completed, APP image should be available at:\"
->
-> \- echo \${CI\_REGISTRY\_IMAGE}:\${CI\_REGISTRY\_TAG\_DEV}
->
-> environment:
->
-> name: development
->
-> \#build docker app only when a pipeline on master branch is run
->
-> only:
->
-> \- master
->
+#Test stage 
+unit test:
+  stage: test
+  script:
+    - echo "Unit Test scripts should go here.."
+  
+#build stage
+maven-build:
+  stage: build
+  image: maven:latest
+  script:
+    - mvn package
+#docker-build stage
+docker build push:
+  stage: docker-build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    #- echo $CI_REGISTRY_CA_CERT
+    - echo "-------------------------------------------------------------------"
+    - echo "${CI_REGISTRY_CA_CERT}" > /kaniko/ssl/certs/jis-certificates.crt
+    - echo "Copied Harbor Registry CERT into /kaniko/ssl/certs/jis-certificates.crt:"
+    - echo "-------------------------------------------------------------------"
+    - cat /kaniko/ssl/certs/jis-certificates.crt
+    - echo "-------------------------------------------------------------------"
+    - echo "Project Build Dir:"
+    - echo $CI_PROJECT_DIR 
+    - echo "Target Harbor reposiory image:"
+    - echo $CI_REGISTRY_IMAGE
+    - /kaniko/executor --context $CI_PROJECT_DIR/qrcode --dockerfile $CI_PROJECT_DIR/qrcode/Dockerfile --destination ${CI_REGISTRY_IMAGE}:${CI_REGISTRY_TAG_DEV}
+    - echo "CI/CD job completed, APP image should be available at:"
+    - echo ${CI_REGISTRY_IMAGE}:${CI_REGISTRY_TAG_DEV}
+  environment:
+    name: development
+  #build docker app only when a pipeline on master branch is run
+  only:
+  - master
+```
 > NOTES:
 
 -   This CI/CD script contains the following stages:
@@ -848,9 +781,6 @@ structure and stages defined in accordance with documentation:
         to a centralized image repository for further use in CD
         processes
 
-    ```{=html}
-    <!-- -->
-    ```
     -   Other Examples of end-to-end Docker container build and
         deployment automation via GitLab CI/CD pipelines can be found in
         various blogs such as:
@@ -904,69 +834,38 @@ Configure and Execute CI/CD Pipeline for Deployment of Application from Registry
     secret with Harbor login credentials that would need to exist in the
     namespace where application will be deployed:
 
-> \-\--
->
-> apiVersion: apps/v1
->
-> kind: Deployment
->
-> metadata:
->
-> name: qrcode-java
->
-> \#namespace: hello-world
->
-> labels:
->
-> app: qrcode
->
-> spec:
->
-> replicas: 2
->
-> selector:
->
-> matchLabels:
->
-> app: qrcode
->
-> strategy:
->
-> type: RollingUpdate
->
-> rollingUpdate:
->
-> maxSurge: 1
->
-> maxUnavailable: 33%
->
-> template:
->
-> metadata:
->
-> labels:
->
-> app: qrcode
->
-> spec:
->
-> imagePullSecrets:
->
-> \- name: regcred
->
-> containers:
->
-> \- name: qrcode
->
-> \#NOTE: cicd-v3 tag is for deploymet branch, will have to use another
-> one for production
->
-> image: **harbor.corp.local/daniel\_project1/qrcode:cicd-v3**
->
-> ports:
->
-> \- containerPort: 8080
->
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qrcode-java
+  labels:
+    app: qrcode
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: qrcode
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 33%
+  template:
+    metadata:
+      labels:
+        app: qrcode
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: qrcode
+          #NOTE: :cicd-vX tag is for deploymet branch, will have to use another one for production 
+          image: harbor.corp.local/daniel_project1/qrcode:cicd-v2
+          ports:
+            - containerPort: 8080
+```
 > NOTE: in this version, an image tagged as
 > **harbor.corp.local/daniel\_project1/qrcode:cicd-v3** is expected to
 > be present in the Harbor repository at the time of deployment to K8s
@@ -983,110 +882,56 @@ Configure and Execute CI/CD Pipeline for Deployment of Application from Registry
     only when pipeline on **master** branch is run hence the 'only ...'
     condition
 
-> .....
->
-> \#deploy stage
->
-> deploy to development:
->
-> stage: deploy
->
-> image:
-> \"**registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v0.15.0**\"
->
-> script:
->
-> \- echo \"Runner in Environment:\"
->
-> \- echo \$CI\_ENVIRONMENT\_SLUG
->
-> \- echo \"WILL USE BUILT IN K8s VARS PER ENVIRONENT:\"
->
-> \- echo \"KUBE\_URL:\"
->
-> \- echo \$KUBE\_URL
->
-> \- echo \"KUBE\_NAMESPACE:\"
->
-> \- echo \$KUBE\_NAMESPACE
->
-> \- echo \"Path to kubeconfig:\"
->
-> \- echo \$KUBECONFIG
->
-> \- echo \"=================================\"
->
-> \- echo \"Trying to \'get nodes\' using default kubeconfig
-> setting\...\"
->
-> \# will use syntax like kubectl config \--kubeconfig=config-demo
-> set-cluster
->
-> \- kubectl \--kubeconfig=\"\${KUBECONFIG}\" get nodes
->
-> \- echo \"=================================\"
->
-> \- echo \"CHECK K8s current context set to:\"
->
-> \- kubectl config current-context
->
-> \- echo \"Getting Nodes info w/o using context:\"
->
-> \- kubectl get nodes
->
-> \#- echo
-> \"\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--\"
->
-> \# TODO: add error handling in case if NS exists or just delete
-> proactively
->
-> \- kubectl delete ns \$KUBE\_NAMESPACE
->
-> \- sleep 60
->
-> \# now create it again
->
-> \- kubectl create ns \$KUBE\_NAMESPACE
->
-> \- echo \"Creating regcred Docker login secret \'regcred\'..\"
->
-> \- kubectl create secret docker-registry regcred
-> \--docker-server=\$CI\_REGISTRY
-> \--docker-username=\$CI\_REGISTRY\_USER
-> \--docker-password=\$CI\_REGISTRY\_PASSWORD
-> \--docker-email=admin\_harbor\@acelcab.local
->
-> \- kubectl get secrets
->
-> \- echo \"Will deploy QR Code container app to target
-> cluster/namespace:\"
->
-> \- kubectl apply -f \$CI\_PROJECT\_DIR/deployment\_qrcode.yaml
->
-> \- echo \"QR Code container App deployed to K8s cluster, checking Pod
-> status:\"
->
-> \- kubectl get deploy,po -n \$KUBE\_NAMESPACE
->
-> \- kubectl expose deployment qrcode-java \--type=LoadBalancer
-> \--name=qrcode-lb \--port=8090 \--target-port=8080 -n
-> \$KUBE\_NAMESPACE
->
-> \- echo \"QR Code App should be exposed via LoadBalancer IP on port
-> 8090:\"
->
-> \- kubectl get svc -n \$KUBE\_NAMESPACE
->
-> environment:
->
-> name: development
->
-> \#deploy app to K8s only when a pipeline on master branch is run
->
-> only:
->
-> \- master
->
+```yaml
+#deploy stage    
+deploy to development:
+  stage: deploy
+  #image: dtzar/helm-kubectl
+  image:  "registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v0.15.0"
+  script:
+    - echo "Runner in Environment:"
+    - echo $CI_ENVIRONMENT_SLUG
+    - echo "WILL USE BUILT IN K8s VARS PER ENVIRONENT:"
+    - echo "KUBE_URL:" 
+    - echo $KUBE_URL
+    #- echo "KUBE_TOKEN:"
+    #- echo $KUBE_TOKEN
+    - echo "KUBE_NAMESPACE:"
+    - echo $KUBE_NAMESPACE
+    - echo "Path to kubeconfig:"
+    - echo  $KUBECONFIG
+    - echo "================================="
+    - echo "Trying to 'get nodes' using default kubeconfig setting..."
+    # will use syntax like kubectl config --kubeconfig=config-demo set-cluster
+    - kubectl --kubeconfig="${KUBECONFIG}" get nodes
+    - echo "================================="
+    - echo "CHECK K8s current context set to:"
+    - kubectl config current-context
+    - echo "Getting Nodes info w/o using context:"
+    - kubectl get nodes
+    #- echo "-------------------------------------------------"
+    # TODO: add error handling in case if NS exists or just delete proactively
+    - kubectl delete ns $KUBE_NAMESPACE
+    - sleep 60
+    # now create it again
+    - kubectl create ns $KUBE_NAMESPACE
+    - echo "Creating regcred Docker login secret 'regcred'.."
+    - kubectl create secret docker-registry regcred --docker-server=$CI_REGISTRY --docker-username=$CI_REGISTRY_USER --docker-password=$CI_REGISTRY_PASSWORD --docker-email=admin_harbor@acelcab.local
+    - kubectl get secrets
+    - echo "Will deploy QR Code container app to target cluster/namespace:"
+    - kubectl apply -f $CI_PROJECT_DIR/deployment_qrcode.yaml
+    - echo "QR Code container App deployed to K8s cluster, checking Pod status:"
+    #- kubectl get po -n default
+    - kubectl get deploy,po -n $KUBE_NAMESPACE
+    - kubectl expose deployment qrcode-java --type=LoadBalancer --name=qrcode-lb --port=8090 --target-port=8080 -n $KUBE_NAMESPACE
+    - echo "QR Code App should be exposed via LoadBalancer IP on port 8090:"
+    - kubectl get svc -n $KUBE_NAMESPACE 
+  environment:
+    name: development
+  #deploy app to K8s only when a pipeline on master branch is run
+  only:
+  - master
+```
 > NOTES:
 
 -   We are using a different container image to run jobs for **deploy**
