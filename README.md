@@ -14,7 +14,7 @@ with project
 7](#install-and-configure-gitlab-runner-using-helm-chart-associate-it-with-project)
 
 [5. Configure and Execute CI/CD Pipeline for Building, Tagging and
-Publishing Application Image into Harbor Registry 13](#configure and Execute CI/CD Pipeline for Building, Tagging and Publishing Application Image into Harbor Registry)
+Publishing Application Image into Harbor Registry 13](#
 
 [6. Configure and Execute CI/CD Pipeline for Deployment of Application
 from Registry to K8s Cluster
@@ -1246,7 +1246,7 @@ kubectl port-forward qrcode-java-7f77794b99-gfz4c 8090:8080 -n qrcode
 
 curl -d \'{\"merchantID\":\"123\", \"merchantName\":\"daniel\"}\' -H
 \"Content-Type: application/json\" -X POST
-http://localhost:8090/generateQRCode \--output QRCode.out
+http://10.40.14.88:8090/generateQRCode \--output QRCode.out
 
 \% Total % Received % Xferd Average Speed Time Time Time Current
 
