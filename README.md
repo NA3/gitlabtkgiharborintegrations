@@ -1058,13 +1058,19 @@ project. That should logically complete "Contunuous Deployment" part of CI/CD pi
 > \- echo \"QR Code container App deployed to K8s cluster, checking Pod
 > status:\"
 >
-> \- kubectl get po -n \$KUBE\_NAMESPACE
+> \- kubectl get deploy,po -n \$KUBE\_NAMESPACE
+>
+> \- kubectl expose deployment qrcode-java --type=LoadBalancer --name=qrcode-lb --port=8090 --target-port=8080 -n $KUBE_NAMESPACE
+>
+> \- echo "QR Code App should be exposed via LoadBalancer IP on port 8090:"
+>
+> \- kubectl get svc -n $KUBE_NAMESPACE
 >
 > environment:
 >
 > name: development
 >
-> \#deploy app to K8s only when a pipeline on master branch is run
+> \#deploy app to K8s only when a pipeline on 'master' branch is run
 >
 > only:
 >
