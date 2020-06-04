@@ -138,6 +138,7 @@ Copy the above certificate string value for use in the following steps
 > *gitlab-admin-service-account.yaml* K8s deployment descriptor provided
 > as an example:
 >
+```yaml
 > apiVersion: v1
 >
 > kind: ServiceAccount
@@ -173,6 +174,7 @@ Copy the above certificate string value for use in the following steps
 > name: gitlab-admin
 >
 > namespace: kube-system
+```
 
 Create Service account and Cluster Role Binding in the target cluster:
 
