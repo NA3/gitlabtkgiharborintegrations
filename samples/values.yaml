@@ -6,15 +6,15 @@
 ## ref: https://hub.docker.com/r/gitlab/gitlab-runner/tags/
 ##
 ##image: gitlab/gitlab-runner:alpine-v11.6.0
-
+# 5D6-9KUEpcdvoMjmB63d
 gitlabUrl: https://gitlab.corp.local
-runnerRegistrationToken: '5D6-9KUEpcdvoMjmB63d'
+runnerRegistrationToken: 'WoBxtC4Ajy65izMcsBXE'
 
 ## Specify a imagePullPolicy
 ## 'Always' if imageTag is 'latest', else set to 'IfNotPresent'
 ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
 ##
-imagePullPolicy: IfNotPresent
+imagePullPolicy: Always
 
 ## The GitLab Server URL (with protocol) that want to register the runner against
 ## ref: https://docs.gitlab.com/runner/commands/README.html#gitlab-runner-register
@@ -155,7 +155,7 @@ runners:
   ## commands. Please read the docivi s before turning this on:
   ## ref: https://docs.gitlab.com/runner/executors/kubernetes.html#using-docker-dind
   ##
-  privileged: true
+  privileged: false
 
   ## The name of the secret containing runner-token and runner-registration-token
   # secret: gitlab-runner
@@ -333,7 +333,7 @@ tolerations: []
 ## This provides further control over the registration process and the config.toml file
 ## ref: `gitlab-runner register --help`
 ## ref: https://docs.gitlab.com/runner/configuration/advanced-configuration.html
-##
+## for non-root should be pattern of ~/.gitlab-runner/certs/hostname.crt
 envVars:
   - name: RUNNER_ENV
     value: "DOCKER_TLS_CERTDIR="

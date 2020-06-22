@@ -48,52 +48,9 @@ docker build push:
   only:
   - master
   
-#deploy stage    
-deploy to development:
-  stage: deploy
-  #image: dtzar/helm-kubectl
-  image:  "registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v0.15.0"
-  script:
-    - echo "Runner in Environment:"
-    - echo $CI_ENVIRONMENT_SLUG
-    - echo "WILL USE BUILT IN K8s VARS PER ENVIRONENT:"
-    - echo "KUBE_URL:" 
-    - echo $KUBE_URL
-    #- echo "KUBE_TOKEN:"
-    #- echo $KUBE_TOKEN
-    - echo "KUBE_NAMESPACE:"
-    - echo $KUBE_NAMESPACE
-    - echo "Path to kubeconfig:"
-    - echo  $KUBECONFIG
-    - echo "================================="
-    - echo "Trying to 'get nodes' using default kubeconfig setting..."
-    # will use syntax like kubectl config --kubeconfig=config-demo set-cluster
-    - kubectl --kubeconfig="${KUBECONFIG}" get nodes
-    - echo "================================="
-    - echo "CHECK K8s current context set to:"
-    - kubectl config current-context
-    - echo "Getting Nodes info w/o using context:"
-    - kubectl get nodes
-    #- echo "-------------------------------------------------"
-    # TODO: add error handling in case if NS exists or just delete proactively
-    - kubectl delete ns $KUBE_NAMESPACE
-    - sleep 60
-    # now create it again
-    - kubectl create ns $KUBE_NAMESPACE
-    - echo "Creating regcred Docker login secret 'regcred'.."
-    - kubectl create secret docker-registry regcred --docker-server=$CI_REGISTRY --docker-username=$CI_REGISTRY_USER --docker-password=$CI_REGISTRY_PASSWORD --docker-email=admin_harbor@acelcab.local
-    - kubectl get secrets
-    - echo "Will deploy QR Code container app to target cluster/namespace:"
-    - kubectl apply -f $CI_PROJECT_DIR/deployment_qrcode.yaml
-    - echo "QR Code container App deployed to K8s cluster, checking Pod status:"
-    #- kubectl get po -n default
-    - kubectl get deploy,po -n $KUBE_NAMESPACE
-    - kubectl expose deployment qrcode-java --type=LoadBalancer --name=qrcode-lb --port=8090 --target-port=8080 -n $KUBE_NAMESPACE
-    - echo "QR Code App should be exposed via LoadBalancer IP on port 8090:"
-    - kubectl get svc -n $KUBE_NAMESPACE 
-  environment:
-    name: development
-  #deploy app to K8s only when a pipeline on master branch is run
-  only:
-  - master
+#deploy stage   
+#TODO: try include statement to separate CI from CD:
+include: '.gitlab-ci-deploy-dev.yaml'
+#then 'deploy to development' can be commented out
+
     
